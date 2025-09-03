@@ -25,3 +25,8 @@ bash bin/ssg
 
 ## Contributing
 PRs welcome! Good first issues will be labeled. CI runs ShellCheck/shfmt/Bats.
+
+### Show available options
+```bash
+ssg --features
+```
