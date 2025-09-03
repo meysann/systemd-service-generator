@@ -1,0 +1,27 @@
+name: CI
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tooling (shellcheck, bats, shfmt)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y shellcheck bats
+          curl -sSL https://github.com/mvdan/sh/releases/latest/download/shfmt_linux_amd64 -o shfmt
+          sudo install -m 0755 shfmt /usr/local/bin/shfmt
+
+      - name: Format check (shfmt)
+        run: shfmt -d -i 2 -ci -sr $(git ls-files '*.sh' 'bin/*' 'lib/*' 'steps/*')
+
+      - name: Lint (shellcheck)
+        run: shellcheck $(git ls-files '*.sh' 'bin/*' 'lib/*' 'steps/*')
+
+      - name: Tests (bats)
+        run: bats -r tests
