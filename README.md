@@ -24,4 +24,4 @@ bash bin/ssg
 - Bash 4+
 
 ## Contributing
-PRs welcome! See CONTRIBUTING (coming soon). Good first issues will be labeled.
+PRs welcome! Good first issues will be labeled. CI runs ShellCheck/shfmt/Bats.
