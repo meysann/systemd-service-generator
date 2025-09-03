@@ -1,5 +1,5 @@
-# shellcheck disable=SC2034  # color vars used by helpers in this and other sourced files
 #!/usr/bin/env bash
+# shellcheck disable=SC2034  # color vars used by helpers in this and other sourced files
 # colors (safe fallback)
 if command -v tput > /dev/null 2>&1 && tput colors > /dev/null 2>&1; then
   BOLD="$(tput bold)"

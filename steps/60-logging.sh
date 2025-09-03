@@ -1,5 +1,5 @@
-# shellcheck disable=SC2015
 #!/usr/bin/env bash
+# shellcheck disable=SC2015
 # Step 60: Logging (journal vs file) + SyslogIdentifier
 # Sets: SYSLOG_ID, LOGFILE, STDOUT, STDERR
 

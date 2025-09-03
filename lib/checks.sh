@@ -1,6 +1,6 @@
+#!/usr/bin/env bash
 # shellcheck disable=SC2015
 # shellcheck disable=SC2028
-#!/usr/bin/env bash
 
 ensure_bash() { [[ -n "${BASH_VERSION:-}" ]] || {
   echo "Run with Bash: bash bin/ssg" >&2
