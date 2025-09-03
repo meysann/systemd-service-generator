@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+log(){ printf '[SSG] %s\n' "$*" >&2; }
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# Load libs with rc logging
+set +e
+source "$ROOT_DIR/lib/checks.sh"; rc=$?; log "source lib/checks.sh rc=$rc"; ((rc==0)) || exit $rc
+source "$ROOT_DIR/lib/ui.sh";     rc=$?; log "source lib/ui.sh rc=$rc";     ((rc==0)) || exit $rc
+source "$ROOT_DIR/lib/util.sh";   rc=$?; log "source lib/util.sh rc=$rc";   ((rc==0)) || exit $rc
+set -e
+
+ensure_bash; ensure_tty; ensure_systemctl; maybe_warn_crlf "$0"
+
+printf "\nSystemd Service & Timer Wizard (core)\n"; hr
+STEP=0
+
+# --- State ---
+SCOPE=""; UNIT_DIR=""; UNIT_NAME=""; UNIT_DESC=""
+SERVICE_PATH=""; TIMER_PATH=""
+TYPE=""; EXEC=""; PIDFILE=""; WORKDIR=""
+declare -a EXEC_PRE=()
+EXEC_POST=""; EXEC_RELOAD=""; EXEC_STOP=""
+RESTART="no"; RESTART_SEC=""; REMAIN="no"
+START_LIMIT_INTERVAL=""; START_LIMIT_BURST=""
+declare -a AFTER=() WANTS=() REQUIRES=()
+SYSLOG_ID=""; LOGFILE=""; STDOUT="journal"; STDERR="journal"
+RUN_USER=""; RUN_GROUP=""
+
+# limits/hardening
+CPU_QUOTA=""; MEM_MAX=""; TASKS_MAX=""; LIMIT_NOFILE=""; UMASK=""
+NO_NEW_PRIVS="no"; PRIVATE_TMP="no"; PRIVATE_DEVICES="no"
+PROTECT_SYSTEM=""; PROTECT_HOME=""
+PROTECT_KERNEL_TUNABLES="no"; PROTECT_KERNEL_MODULES="no"; PROTECT_CONTROL_GROUPS="no"
+RESTRICT_SUID_SGID="no"; RESTRICT_NAMESPACES="no"; LOCK_PERSONALITY="no"; MEMORY_DENY_WX="no"
+
+# Steps (each returns 0)
+set +e
+source "$ROOT_DIR/steps/10-scope.sh";             rc=$?; log "scope step rc=$rc";           ((rc==0)) || exit $rc
+source "$ROOT_DIR/steps/20-ident.sh";             rc=$?; log "ident step rc=$rc";           ((rc==0)) || exit $rc
+source "$ROOT_DIR/steps/30-type-exec.sh";         rc=$?; log "type-exec step rc=$rc";       ((rc==0)) || exit $rc
+source "$ROOT_DIR/steps/40-lifecycle-restart.sh"; rc=$?; log "lifecycle step rc=$rc";       ((rc==0)) || exit $rc
+source "$ROOT_DIR/steps/50-deps.sh";              rc=$?; log "deps step rc=$rc";            ((rc==0)) || exit $rc
+source "$ROOT_DIR/steps/60-logging.sh";           rc=$?; log "logging step rc=$rc";         ((rc==0)) || exit $rc
+source "$ROOT_DIR/steps/70-limits-hardening.sh";  rc=$?; log "limits step rc=$rc";          ((rc==0)) || exit $rc
+source "$ROOT_DIR/steps/80-generate-write.sh";    rc=$?; log "generate step rc=$rc";        ((rc==0)) || exit $rc
+set -e
+
+echo
+info "Done. You can re-run to tweak choices or build another service."
+hr
+echo "Tip: to view logs: journalctl -u ${UNIT_NAME}.service -f"
