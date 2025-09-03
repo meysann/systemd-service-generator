@@ -3,6 +3,10 @@ set -Eeuo pipefail
 log(){ printf '[SSG] %s\n' "$*" >&2; }
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ "${1:-}" =~ ^(--features|--overview)$ ]]; then
+  bash "$ROOT_DIR/scripts/features.sh"
+  exit 0
+fi
 
 # Load libs with rc logging
 set +e
