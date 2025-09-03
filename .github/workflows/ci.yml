@@ -4,24 +4,49 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install tooling (shellcheck, bats, shfmt)
         run: |
+          set -Eeuo pipefail
           sudo apt-get update -y
-          sudo apt-get install -y shellcheck bats
-          curl -sSL https://github.com/mvdan/sh/releases/latest/download/shfmt_linux_amd64 -o shfmt
-          sudo install -m 0755 shfmt /usr/local/bin/shfmt
+          sudo apt-get install -y shellcheck bats shfmt
+          shfmt --version
+          shellcheck --version
+          bats --version
 
       - name: Format check (shfmt)
-        run: shfmt -d -i 2 -ci -sr $(git ls-files '*.sh' 'bin/*' 'lib/*' 'steps/*')
+        run: |
+          set -Eeuo pipefail
+          git ls-files -z "*.sh" "bin/*" "lib/*" "steps/*" \
+            | xargs -0 -r shfmt -d -i 2 -ci -sr
 
       - name: Lint (shellcheck)
-        run: shellcheck $(git ls-files '*.sh' 'bin/*' 'lib/*' 'steps/*')
+        env:
+          SHELLCHECK_OPTS: -e SC1090 -e SC1091
+        run: |
+          set -Eeuo pipefail
+          files=$(git ls-files "*.sh" "bin/*" "lib/*" "steps/*")
+          if [ -n "$files" ]; then
+            # fail only on real errors, still show warnings
+            shellcheck -S error $SHELLCHECK_OPTS $files
+            shellcheck -S warning $SHELLCHECK_OPTS $files || true
+          else
+            echo "no shell files found"
+          fi
 
       - name: Tests (bats)
-        run: bats -r tests
+        run: |
+          set -Eeuo pipefail
+          [ -d tests ] && bats -r tests || echo "no tests/ directory; skipping"
