@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 files=$(git ls-files "*.sh" "bin/*" "lib/*" "steps/*")
-[ -z "$files" ] && { echo "no shell files"; exit 0; }
+[ -z "$files" ] && {
+  echo "no shell files"
+  exit 0
+}
 echo "== shfmt diff =="
 shfmt -d -i 2 -ci -sr $files || true
 echo "== shellcheck (errors cause nonzero) =="
