@@ -1,3 +1,4 @@
+# shellcheck disable=SC2034  # SCOPE used by subsequent steps
 #!/usr/bin/env bash
 step "Choose scope (where the unit will live)"
 note "• system → managed by root, starts at boot, units go to /etc/systemd/system"

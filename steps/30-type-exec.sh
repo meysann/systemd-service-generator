@@ -1,3 +1,4 @@
+# shellcheck disable=SC2015
 #!/usr/bin/env bash
 # Step 30: Service type & ExecStart (+ optional PIDFile/WorkingDirectory)
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-cat <<EOF
+cat << EOF
 Systemd Service Generator — Features
 -----------------------------------
 • Scope — system (/etc/systemd/system) or user (~/.config/systemd/user)

@@ -39,8 +39,8 @@ fi
 
 echo
 info "Dependencies summary:"
-(( ${#AFTER[@]}    > 0 )) && info "  After=    ${AFTER[*]}"
-(( ${#WANTS[@]}    > 0 )) && info "  Wants=    ${WANTS[*]}"
-(( ${#REQUIRES[@]} > 0 )) && info "  Requires= ${REQUIRES[*]}"
+((${#AFTER[@]} > 0)) && info "  After=    ${AFTER[*]}"
+((${#WANTS[@]} > 0)) && info "  Wants=    ${WANTS[*]}"
+((${#REQUIRES[@]} > 0)) && info "  Requires= ${REQUIRES[*]}"
 
 return 0

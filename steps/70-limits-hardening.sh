@@ -34,17 +34,17 @@ ask_yes_no "Enable PrivateDevices? (hide most of /dev)" "y/N" && PRIVATE_DEVICES
 # ProtectSystem
 psel="$(ask_choice "ProtectSystem level" "no (default)" "full (protect /usr /boot /etc readonly)" "strict (protect whole FS readonly)")"
 case "$psel" in
-  no*)     PROTECT_SYSTEM="";;
-  full*)   PROTECT_SYSTEM="full";;
-  strict*) PROTECT_SYSTEM="strict";;
+  no*) PROTECT_SYSTEM="" ;;
+  full*) PROTECT_SYSTEM="full" ;;
+  strict*) PROTECT_SYSTEM="strict" ;;
 esac
 
 # ProtectHome
 hsel="$(ask_choice "ProtectHome" "no (default)" "read-only" "tmpfs")"
 case "$hsel" in
-  no*)        PROTECT_HOME="";;
-  read-only)  PROTECT_HOME="read-only";;
-  tmpfs)      PROTECT_HOME="tmpfs";;
+  no*) PROTECT_HOME="" ;;
+  read-only) PROTECT_HOME="read-only" ;;
+  tmpfs) PROTECT_HOME="tmpfs" ;;
 esac
 
 PROTECT_KERNEL_TUNABLES="no"
@@ -70,22 +70,22 @@ ask_yes_no "MemoryDenyWriteExecute? (W^X enforcement)" "y/N" && MEMORY_DENY_WX="
 
 echo
 info "Limits & hardening summary:"
-[[ -n "${CPU_QUOTA:-}"   ]] && info "  CPUQuota:             ${CPU_QUOTA}"
-[[ -n "${MEM_MAX:-}"     ]] && info "  MemoryMax:            ${MEM_MAX}"
-[[ -n "${TASKS_MAX:-}"   ]] && info "  TasksMax:             ${TASKS_MAX}"
+[[ -n "${CPU_QUOTA:-}" ]] && info "  CPUQuota:             ${CPU_QUOTA}"
+[[ -n "${MEM_MAX:-}" ]] && info "  MemoryMax:            ${MEM_MAX}"
+[[ -n "${TASKS_MAX:-}" ]] && info "  TasksMax:             ${TASKS_MAX}"
 [[ -n "${LIMIT_NOFILE:-}" ]] && info "  LimitNOFILE:          ${LIMIT_NOFILE}"
-[[ -n "${UMASK:-}"       ]] && info "  UMask:                ${UMASK}"
-[[ "${NO_NEW_PRIVS}" == "yes"         ]] && info "  NoNewPrivileges:      yes"
-[[ "${PRIVATE_TMP}" == "yes"          ]] && info "  PrivateTmp:           yes"
-[[ "${PRIVATE_DEVICES}" == "yes"      ]] && info "  PrivateDevices:       yes"
-[[ -n "${PROTECT_SYSTEM:-}"           ]] && info "  ProtectSystem:        ${PROTECT_SYSTEM}"
-[[ -n "${PROTECT_HOME:-}"             ]] && info "  ProtectHome:          ${PROTECT_HOME}"
-[[ "${PROTECT_KERNEL_TUNABLES}" == "yes"  ]] && info "  ProtectKernelTunables: yes"
-[[ "${PROTECT_KERNEL_MODULES}" == "yes"   ]] && info "  ProtectKernelModules:  yes"
-[[ "${PROTECT_CONTROL_GROUPS}" == "yes"   ]] && info "  ProtectControlGroups:  yes"
-[[ "${RESTRICT_SUID_SGID}" == "yes"      ]] && info "  RestrictSUIDSGID:      yes"
-[[ "${RESTRICT_NAMESPACES}" == "yes"     ]] && info "  RestrictNamespaces:    yes"
-[[ "${LOCK_PERSONALITY}" == "yes"        ]] && info "  LockPersonality:       yes"
-[[ "${MEMORY_DENY_WX}" == "yes"         ]] && info "  MemoryDenyWriteExecute: yes"
+[[ -n "${UMASK:-}" ]] && info "  UMask:                ${UMASK}"
+[[ "${NO_NEW_PRIVS}" == "yes" ]] && info "  NoNewPrivileges:      yes"
+[[ "${PRIVATE_TMP}" == "yes" ]] && info "  PrivateTmp:           yes"
+[[ "${PRIVATE_DEVICES}" == "yes" ]] && info "  PrivateDevices:       yes"
+[[ -n "${PROTECT_SYSTEM:-}" ]] && info "  ProtectSystem:        ${PROTECT_SYSTEM}"
+[[ -n "${PROTECT_HOME:-}" ]] && info "  ProtectHome:          ${PROTECT_HOME}"
+[[ "${PROTECT_KERNEL_TUNABLES}" == "yes" ]] && info "  ProtectKernelTunables: yes"
+[[ "${PROTECT_KERNEL_MODULES}" == "yes" ]] && info "  ProtectKernelModules:  yes"
+[[ "${PROTECT_CONTROL_GROUPS}" == "yes" ]] && info "  ProtectControlGroups:  yes"
+[[ "${RESTRICT_SUID_SGID}" == "yes" ]] && info "  RestrictSUIDSGID:      yes"
+[[ "${RESTRICT_NAMESPACES}" == "yes" ]] && info "  RestrictNamespaces:    yes"
+[[ "${LOCK_PERSONALITY}" == "yes" ]] && info "  LockPersonality:       yes"
+[[ "${MEMORY_DENY_WX}" == "yes" ]] && info "  MemoryDenyWriteExecute: yes"
 
 return 0
