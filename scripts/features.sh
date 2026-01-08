@@ -21,5 +21,5 @@ Systemd Service Generator — Features
 • Run user/group (optional) — run as specific User/Group
 • Generate & save — write unit, daemon-reload, enable/start, tail logs
 • Export to repo (optional) — copy unit(s) to repo and optionally git commit
-• Timer (planned) — .timer with OnCalendar / RandomizedDelaySec / AccuracySec
+• Timer (optional) — .timer with OnCalendar / RandomizedDelaySec / AccuracySec / Persistent / WakeSystem
 EOF

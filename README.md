@@ -17,7 +17,7 @@ bash bin/ssg
 ## Features
 - Interactive, beginner-friendly prompts (scope, ExecStart, restart, logging, hardening…)
 - Safe defaults; ShellCheck/shfmt clean
-- Generates `.service` now; `.timer` on the roadmap
+- Generates `.service` and optional matching `.timer` (OnCalendar, Persistent, WakeSystem, etc.)
 
 ## Compatibility
 - Linux with **systemd** (`systemctl` required)

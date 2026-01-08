@@ -40,6 +40,16 @@ UNIT_NAME=""
 UNIT_DESC=""
 SERVICE_PATH=""
 TIMER_PATH=""
+
+# Timer (optional)
+TIMER_ENABLED="no"
+TIMER_DESC=""
+ON_CALENDAR=""
+RANDOMIZED_DELAY=""
+ACCURACY=""
+PERSISTENT=""
+WAKE_SYSTEM=""
+
 TYPE=""
 EXEC=""
 PIDFILE=""
@@ -110,6 +120,13 @@ source "$ROOT_DIR/steps/70-limits-hardening.sh"
 rc=$?
 log "limits step rc=$rc"
 ((rc == 0)) || exit $rc
+
+# Timer step (required)
+source "$ROOT_DIR/steps/90-timer-config.sh"
+rc=$?
+log "timer step rc=$rc"
+((rc == 0)) || exit $rc
+
 source "$ROOT_DIR/steps/80-generate-write.sh"
 rc=$?
 log "generate step rc=$rc"
@@ -120,3 +137,6 @@ echo
 info "Done. You can re-run to tweak choices or build another service."
 hr
 echo "Tip: to view logs: journalctl -u ${UNIT_NAME}.service -f"
+if [[ "${TIMER_ENABLED:-no}" == "yes" ]]; then
+  echo "Tip: timer status: systemctl ${SCOPE:+--user} --no-pager --full status ${UNIT_NAME}.timer"
+fi

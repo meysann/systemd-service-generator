@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
-# Step 80: Generate & save the .service file; reload/enable/start (interactive)
+# Step 80: Generate & save the .service file; optionally generate & save a matching .timer; reload/enable/start (interactive)
 
 step "Generate & save service unit"
 
 # --- helper to append lines safely ---
 UNIT_CONTENT=""
 emit() { UNIT_CONTENT+="$1"$'\n'; }
+
+# Timer content (optional)
+TIMER_CONTENT=""
+emit_timer() { TIMER_CONTENT+="$1"$'\n'; }
 
 # --- [Unit] ---
 emit "[Unit]"
@@ -87,9 +91,36 @@ else
   emit "WantedBy=default.target"
 fi
 
+# --- Optional .timer unit ---
+if [[ "${TIMER_ENABLED:-no}" == "yes" ]]; then
+  TIMER_CONTENT=""
+  emit_timer "[Unit]"
+  emit_timer "Description=${TIMER_DESC:-Timer for ${UNIT_DESC}}"
+  emit_timer ""
+  emit_timer "[Timer]"
+  emit_timer "OnCalendar=${ON_CALENDAR}"
+  [[ -n "${RANDOMIZED_DELAY:-}" ]] && emit_timer "RandomizedDelaySec=${RANDOMIZED_DELAY}"
+  [[ -n "${ACCURACY:-}" ]] && emit_timer "AccuracySec=${ACCURACY}"
+  [[ "${PERSISTENT:-no}" == "yes" ]] && emit_timer "Persistent=true"
+  [[ "${WAKE_SYSTEM:-no}" == "yes" ]] && emit_timer "WakeSystem=true"
+  emit_timer ""
+  emit_timer "[Install]"
+  if [[ "${SCOPE}" == "system" ]]; then
+    emit_timer "WantedBy=timers.target"
+  else
+    emit_timer "WantedBy=default.target"
+  fi
+fi
+
 # --- Preview ---
 note "Preview of ${SERVICE_PATH}"
 printf '%s\n' "$UNIT_CONTENT" | sed 's/^/    /'
+
+if [[ "${TIMER_ENABLED:-no}" == "yes" ]]; then
+  echo
+  note "Preview of ${TIMER_PATH}"
+  printf '%s\n' "$TIMER_CONTENT" | sed 's/^/    /'
+fi
 
 # --- Save to disk? ---
 if ask_yes_no "Write this unit to ${SERVICE_PATH} ?" "Y/n"; then
@@ -108,6 +139,19 @@ if ask_yes_no "Write this unit to ${SERVICE_PATH} ?" "Y/n"; then
   fi
   info "Wrote ${SERVICE_PATH}"
 
+  if [[ "${TIMER_ENABLED:-no}" == "yes" ]]; then
+    if [[ "${SCOPE}" == "system" ]]; then
+      if ((EUID == 0)); then
+        printf '%s' "$TIMER_CONTENT" > "$TIMER_PATH"
+      else
+        printf '%s' "$TIMER_CONTENT" | sudo tee "$TIMER_PATH" > /dev/null
+      fi
+    else
+      printf '%s' "$TIMER_CONTENT" > "$TIMER_PATH"
+    fi
+    info "Wrote ${TIMER_PATH}"
+  fi
+
   # daemon-reload
   if [[ "${SCOPE}" == "system" ]]; then
     if ((EUID == 0)); then systemctl daemon-reload; else sudo systemctl daemon-reload; fi
@@ -115,6 +159,36 @@ if ask_yes_no "Write this unit to ${SERVICE_PATH} ?" "Y/n"; then
     systemctl --user daemon-reload
   fi
   info "daemon-reload done."
+
+  if [[ "${TIMER_ENABLED:-no}" == "yes" ]]; then
+    if ask_yes_no "Enable ${UNIT_NAME}.timer?" "Y/n"; then
+      if [[ "${SCOPE}" == "system" ]]; then
+        if ((EUID == 0)); then systemctl enable "${UNIT_NAME}.timer"; else sudo systemctl enable "${UNIT_NAME}.timer"; fi
+      else
+        systemctl --user enable "${UNIT_NAME}.timer"
+      fi
+      info "Enabled ${UNIT_NAME}.timer"
+    fi
+
+    if ask_yes_no "Start ${UNIT_NAME}.timer now?" "Y/n"; then
+      if [[ "${SCOPE}" == "system" ]]; then
+        if ((EUID == 0)); then
+          systemctl start "${UNIT_NAME}.timer" || true
+        else
+          sudo systemctl start "${UNIT_NAME}.timer" || true
+        fi
+      else
+        systemctl --user start "${UNIT_NAME}.timer" || true
+      fi
+      echo
+      note "Timer status (short):"
+      if [[ "${SCOPE}" == "system" ]]; then
+        systemctl --no-pager --full status "${UNIT_NAME}.timer" || true
+      else
+        systemctl --user --no-pager --full status "${UNIT_NAME}.timer" || true
+      fi
+    fi
+  fi
 
   # Enable?
   if ask_yes_no "Enable ${UNIT_NAME}.service?" "Y/n"; then
