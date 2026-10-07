@@ -1,52 +1,41 @@
 name: CI
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Install tooling (shellcheck, bats, shfmt)
+      - name: Install tooling
         run: |
-          set -Eeuo pipefail
           sudo apt-get update -y
           sudo apt-get install -y shellcheck bats shfmt
-          shfmt --version
-          shellcheck --version
-          bats --version
-
-      - name: Format check (shfmt)
-        run: |
-          set -Eeuo pipefail
-          git ls-files -z "*.sh" "bin/*" "lib/*" "steps/*" \
-            | xargs -0 -r shfmt -d -i 2 -ci -sr
-
+      - name: Format (shfmt)
+        run: shfmt -d -i 2 -ci -sr bin/ssg lib/*.sh scripts/*.sh completions/ssg.bash tests/helpers.bash
       - name: Lint (shellcheck)
-        env:
-          SHELLCHECK_OPTS: -e SC1090 -e SC1091
-        run: |
-          set -Eeuo pipefail
-          files=$(git ls-files "*.sh" "bin/*" "lib/*" "steps/*")
-          if [ -n "$files" ]; then
-            # fail only on real errors, still show warnings
-            shellcheck -S error $SHELLCHECK_OPTS $files
-            shellcheck -S warning $SHELLCHECK_OPTS $files || true
-          else
-            echo "no shell files found"
-          fi
-
+        run: shellcheck -x -e SC1090 -e SC1091 bin/ssg lib/*.sh scripts/*.sh completions/ssg.bash
       - name: Tests (bats)
+        run: bats -r tests
+
+  # the generator must work against old and new bash/systemd userlands
+  matrix:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -y && sudo apt-get install -y bats
+      - run: bats -r tests
+      - name: Smoke test
         run: |
-          set -Eeuo pipefail
-          [ -d tests ] && bats -r tests || echo "no tests/ directory; skipping"
+          bin/ssg doctor || true
+          bin/ssg new --stdout --exec /bin/true --name smoke --harden strict

@@ -3,29 +3,22 @@ on:
   push:
     tags: ["v*"]
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Make tarball
-        run: |
-          mkdir -p dist
-          tar -czf dist/systemd-service-generator-${GITHUB_REF_NAME}.tar.gz bin lib steps README.md LICENSE VERSION
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-asset
-          path: dist/*.tar.gz
-  publish:
-    needs: build
+  release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: release-asset
-          path: dist
+      - uses: actions/checkout@v4
+      - name: Check VERSION matches tag
+        run: test "v$(tr -d '[:space:]' < VERSION)" = "${GITHUB_REF_NAME}"
+      - name: Build tarball
+        run: |
+          mkdir -p dist
+          tar -czf "dist/ssg-${GITHUB_REF_NAME}.tar.gz" bin lib completions scripts README.md LICENSE VERSION CHANGELOG.md
+          (cd dist && sha256sum *.tar.gz > SHA256SUMS)
       - uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.tar.gz
+          files: |
+            dist/*.tar.gz
+            dist/SHA256SUMS
+          generate_release_notes: true
